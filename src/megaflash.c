@@ -1,9 +1,9 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <mega65/dirent.h>
 #include <mega65/hal.h>
 #include <mega65/memory.h>
-#include <mega65/dirent.h>
 #include <mega65/time.h>
 
 #include <6502.h>
@@ -11,7 +11,7 @@
 #include "qspicommon.h"
 #include "qspireconfig.h"
 
-//#include "version.h"
+// #include "version.h"
 
 unsigned char joy_x = 100;
 unsigned char joy_y = 100;
@@ -23,17 +23,18 @@ unsigned int base_addr;
 #define MAX_SLOTS 8
 
 // core flags/caps
-#define CORECAP_USED         0b10000111
-#define CORECAP_CART         0b00000111
-#define CORECAP_CART_C64     0b00000001
-#define CORECAP_CART_C128    0b00000010
-#define CORECAP_CART_M65     0b00000100
-#define CORECAP_UNDEFINED    0b01111000 // free for further expansion
-#define CORECAP_SLOT_DEFAULT 0b10000000 // in capabilities 1 means: prohibited use as default
+#define CORECAP_USED 0b10000111
+#define CORECAP_CART 0b00000111
+#define CORECAP_CART_C64 0b00000001
+#define CORECAP_CART_C128 0b00000010
+#define CORECAP_CART_M65 0b00000100
+#define CORECAP_UNDEFINED 0b01111000 // free for further expansion
+#define CORECAP_SLOT_DEFAULT                                                   \
+  0b10000000 // in capabilities 1 means: prohibited use as default
 
-#define SLOT_EMPTY   0x00
+#define SLOT_EMPTY 0x00
 #define SLOT_INVALID 0x01
-#define SLOT_VALID   0x80
+#define SLOT_VALID 0x80
 
 #include "cbm_petscii_charmap.h"
 unsigned char cart_c64_magic[5] = "CBM80";
@@ -54,8 +55,7 @@ unsigned char exrom_game = 0xff;
 #ifndef STANDALONE
 char cart_id[9];
 
-unsigned char check_cartridge(void)
-{
+unsigned char check_cartridge(void) {
   // copy cartridge magics out of cartridge ROM space
   lcopy(0x4008004UL, (long)cart_id, 6);
   lcopy(0x400C007UL, (long)cart_id + 6, 3);
@@ -85,10 +85,10 @@ unsigned char check_cartridge(void)
 }
 #endif
 
-unsigned char scan_bitstream_information(unsigned char search_flags, unsigned char update_slot);
+unsigned char scan_bitstream_information(unsigned char search_flags,
+                                         unsigned char update_slot);
 
-void display_version(void)
-{
+void display_version(void) {
   unsigned char key;
   uint8_t core_hash_1 = PEEK(0xD632);
   uint8_t core_hash_2 = PEEK(0xD633);
@@ -99,9 +99,10 @@ void display_version(void)
 #endif
 
   printf("%c%c%c", 0x93, 0x11, 0x11);
-  printf("  Core hash:\n    %02x%02x%02x%02x%s\n", core_hash_4, core_hash_3, core_hash_2, core_hash_1,
-      reconfig_disabled ? " (booted via JTAG)" : "");
-//  printf("  MEGAFLASH version:\n    %s\n", utilVersion);
+  printf("  Core hash:\n    %02x%02x%02x%02x%s\n", core_hash_4, core_hash_3,
+         core_hash_2, core_hash_1,
+         reconfig_disabled ? " (booted via JTAG)" : "");
+  //  printf("  MEGAFLASH version:\n    %s\n", utilVersion);
   printf("  Slot 0 Version:\n    %s\n\n", slot_core[0].version);
   printf("  Hardware information\n"
          "    Model ID:   $%02X\n"
@@ -146,10 +147,12 @@ void display_version(void)
 #ifndef STANDALONE
     // extra boot/cart debug information on F1, so we don't confuse the user
     if (key == 0xf1 && !selected) {
-      printf("\n%c   DIP4: %d\n  $D67E: $%02X (now $%02X)\n", 155, 1 + ((PEEK(0xD69D) >> 3) & 1), exrom_game, PEEK(0xD67EU));
-      printf("  $8004: %02X %02X %02X %02X %02X %02X\n", cart_id[0], cart_id[1], cart_id[2], cart_id[3], cart_id[4],
-          cart_id[5]);
-      printf("  $C007:          %02X %02X %02X%c\n", cart_id[0], cart_id[1], cart_id[2], 5);
+      printf("\n%c   DIP4: %d\n  $D67E: $%02X (now $%02X)\n", 155,
+             1 + ((PEEK(0xD69D) >> 3) & 1), exrom_game, PEEK(0xD67EU));
+      printf("  $8004: %02X %02X %02X %02X %02X %02X\n", cart_id[0], cart_id[1],
+             cart_id[2], cart_id[3], cart_id[4], cart_id[5]);
+      printf("  $C007:          %02X %02X %02X%c\n", cart_id[0], cart_id[1],
+             cart_id[2], 5);
       selected = 1;
     }
 #endif
@@ -160,11 +163,11 @@ void display_version(void)
 }
 
 unsigned char first_flash_read = 1;
-void do_first_flash_read(unsigned long addr)
-{
-  // XXX Work around weird flash thing where first read of a sector reads rubbish
+void do_first_flash_read(unsigned long addr) {
+  // XXX Work around weird flash thing where first read of a sector reads
+  // rubbish
   read_data(addr);
-  for (x = 0; x < 256; x++) {
+  for (short x = 0; x < 256; x++) {
     if (data_buffer[0] != 0xee)
       break;
     usleep(50000L);
@@ -190,8 +193,8 @@ void do_first_flash_read(unsigned long addr)
  * bit to update slot 0.
  *
  */
-unsigned char scan_bitstream_information(unsigned char search_flags, unsigned char update_slot)
-{
+unsigned char scan_bitstream_information(unsigned char search_flags,
+                                         unsigned char update_slot) {
   short slot, j;
   unsigned char found = 0xff, default_slot = 0xff, flagmask = CORECAP_USED;
 
@@ -216,12 +219,13 @@ unsigned char scan_bitstream_information(unsigned char search_flags, unsigned ch
       slot_core[slot].flags = data_buffer[0x7c] & flagmask;
       // remove flags from flagmask (we only find the first flag of a kind)
       flagmask ^= slot_core[slot].flags;
-      if (search_flags && found == 0xff && (slot_core[slot].flags & search_flags))
+      if (search_flags && found == 0xff &&
+          (slot_core[slot].flags & search_flags))
         found = slot;
-      if (default_slot == 0xff && (slot_core[slot].flags & CORECAP_SLOT_DEFAULT))
+      if (default_slot == 0xff &&
+          (slot_core[slot].flags & CORECAP_SLOT_DEFAULT))
         default_slot = slot;
-    }
-    else {
+    } else {
       slot_core[slot].capabilities = slot_core[slot].flags = 0;
       // check if slot is empty (all FF)
       for (j = 0; j < 512 && data_buffer[j] == 0xff; j++)
@@ -262,17 +266,15 @@ unsigned char scan_bitstream_information(unsigned char search_flags, unsigned ch
   return found != 0xff ? found : default_slot;
 }
 
-void write_text(unsigned char x, unsigned char y, char *text, uint8_t length)
-{
+void write_text(unsigned char x, unsigned char y, char *text, uint8_t length) {
   while (length > 0) {
-    POKE(0x400 + y*40 + x++, *text);
+    POKE(0x400 + y * 40 + x++, *text);
     text++;
     length--;
   }
 }
 
-unsigned char confirm_slot0_flash()
-{
+unsigned char confirm_slot0_flash() {
   char slot_magic[] = "MEGA65   ";
   if (strncmp(slot_core[1].name, slot_magic, 9)) {
     printf("%c\n"
@@ -286,7 +288,7 @@ unsigned char confirm_slot0_flash()
            "typing CONFIRM, or press <RUN/STOP> to\n"
            "abort: ",
            0x93, 129, 5, 158, 5);
-    if (!check_input("CONFIRM\r", CASE_SENSITIVE|CASE_PRINT))
+    if (!check_input("CONFIRM\r", CASE_SENSITIVE | CASE_PRINT))
       return 0;
   }
   printf("%c\n"
@@ -309,12 +311,11 @@ unsigned char confirm_slot0_flash()
          "Type CONFIRM to proceed, or press\n"
          "<RUN/STOP> to abort: ",
          0x93, 129, 5, 158, 5, 158, 159, 5);
-  return check_input("CONFIRM\r", CASE_SENSITIVE|CASE_PRINT);
+  return check_input("CONFIRM\r", CASE_SENSITIVE | CASE_PRINT);
 }
 
 #include <cbm_screen_charmap.h>
-void display_cartridge(short slot)
-{
+void display_cartridge(short slot) {
   unsigned char offset = 1;
   // TODO: if we get more than 3 cartridge types, we need to change this!
 
@@ -333,8 +334,7 @@ void display_cartridge(short slot)
 }
 #include <cbm_petscii_charmap.h>
 
-void error_flash(void)
-{
+void error_flash(void) {
   POKE(0xD020, 2);
   POKE(0xD021, 2);
   usleep(150000L);
@@ -342,8 +342,7 @@ void error_flash(void)
   POKE(0xD021, 6);
 }
 
-void hard_exit(void)
-{
+void hard_exit(void) {
   // clear keybuffer
   *(unsigned char *)0xc6 = 0;
 
@@ -359,9 +358,9 @@ void hard_exit(void)
 #endif
 }
 
-void main(void)
-{
-  unsigned char selected = 0xff, atticram_bad = 0, search_cart = CORECAP_SLOT_DEFAULT;
+void main(void) {
+  unsigned char selected = 0xff, atticram_bad = 0,
+                search_cart = CORECAP_SLOT_DEFAULT;
 #if !defined(FIRMWARE_UPGRADE) || !defined(STANDALONE)
   unsigned char i, selected_reflash_slot, selected_file;
 #endif
@@ -433,8 +432,7 @@ void main(void)
 
       // Switch back to normal speed control before exiting
       hard_exit();
-    }
-    else { // FPGA has NOT been reconfigured
+    } else { // FPGA has NOT been reconfigured
       /*
        * Determine which core should be started
        */
@@ -443,25 +441,25 @@ void main(void)
       // determine boot slot by flags (default search is for default slot)
       selected = scan_bitstream_information(search_cart, 0);
 
-      // if we don't have a cart slot, then we use slot 1 if dipsw4=off, or slot 2 if dipsw4=on (issue #443)
+      // if we don't have a cart slot, then we use slot 1 if dipsw4=off, or slot
+      // 2 if dipsw4=on (issue #443)
       if (selected == 0xff)
         selected = 1 + ((PEEK(0xD69D) >> 3) & 1);
 
       if (slot_core[selected].valid == SLOT_VALID) {
         // Valid bitstream -- so start it
         reconfig_fpga(SLOT_SIZE * selected + 4096);
-      }
-      else if (slot_core[selected].valid == SLOT_EMPTY) {
+      } else if (slot_core[selected].valid == SLOT_EMPTY) {
         // Empty slot -- ignore and resume
         // Switch back to normal speed control before exiting
         hard_exit();
-      }
-      else {
+      } else {
         printf("WARNING: Flash slot %d seems to be\n"
                "messed up.\n"
                "To avoid seeing this message every time,"
                "either erase or re-flash the slot.\n\n"
-               "Press almost any key to continue...\n", selected);
+               "Press almost any key to continue...\n",
+               selected);
         while (PEEK(0xD610))
           POKE(0xD610, 0);
         // Ignore TAB, since they might still be holding it
@@ -483,7 +481,7 @@ void main(void)
     hard_exit();
 
 #else /* STANDALONE */
-//  printf("\njtagflash Version\n  %s\n", utilVersion);
+  //  printf("\njtagflash Version\n  %s\n", utilVersion);
 
   if (probe_hardware_version()) {
     printf("\nUnknown hardware model id $%02X\n", hw_model_id);
@@ -492,7 +490,7 @@ void main(void)
   }
   if (probe_qspi_flash()) {
     // print it a second time, screen has scrolled!
-//    printf("\njtagflash Version\n  %s\n", utilVersion);
+    //    printf("\njtagflash Version\n  %s\n", utilVersion);
     press_any_key(1, 1);
     hard_exit();
   }
@@ -513,7 +511,7 @@ void main(void)
            "cores.\n"
            "You will still be able to flash new\n"
            "bitstreams, though.\n\n",
-        158, 5, 158, 5);
+           158, 5, 158, 5);
     reconfig_disabled = 1;
     // wait for key see below
   }
@@ -542,7 +540,7 @@ void main(void)
            "attic ram. Because the flasher in this\n"
            "core does not support flashing without\n"
            "attic ram, flashing has been %cdisabled%c.\n\n",
-        150, 5, 150, 5);
+           150, 5, 150, 5);
 
   // if we gave some warning, wait for a keypress before continuing
   if (reconfig_disabled || atticram_bad) {
@@ -574,27 +572,30 @@ void main(void)
 
     for (i = 0; i < slot_count; i++) {
       // Display slot information
-      printf("\n %c%c%c %s", slot_core[i].flags & CORECAP_SLOT_DEFAULT ? '>' : '(',
-        '0' + i, slot_core[i].flags & CORECAP_SLOT_DEFAULT ? '<' : ')', slot_core[i].name);
+      printf("\n %c%c%c %s",
+             slot_core[i].flags & CORECAP_SLOT_DEFAULT ? '>' : '(', '0' + i,
+             slot_core[i].flags & CORECAP_SLOT_DEFAULT ? '<' : ')',
+             slot_core[i].name);
       if (i > 0 && slot_core[i].valid == SLOT_VALID) {
         printf("\n     %s\n", slot_core[i].version);
         display_cartridge(i);
-      }
-      else
+      } else
         printf("\n\n");
 
       // highlight slot
       base_addr = 0x0400 + i * (3 * 40);
       if (i == selected) {
         // Highlight selected item
-        for (x = 0; x < (3 * 40); x++) {
+        for (short x = 0; x < (3 * 40); x++) {
           POKE(base_addr + x, PEEK(base_addr + x) | 0x80);
-          POKE(base_addr + 0xd400 + x, slot_core[i].valid == SLOT_VALID ? 1 : (slot_core[i].valid == SLOT_INVALID ? 2 : 7));
+          POKE(base_addr + 0xd400 + x,
+               slot_core[i].valid == SLOT_VALID
+                   ? 1
+                   : (slot_core[i].valid == SLOT_INVALID ? 2 : 7));
         }
-      }
-      else {
+      } else {
         // Don't highlight non-selected items
-        for (x = 0; x < (3 * 40); x++) {
+        for (short x = 0; x < (3 * 40); x++) {
           POKE(base_addr + x, PEEK(base_addr + x) & 0x7F);
         }
       }
@@ -602,10 +603,12 @@ void main(void)
     // Draw footer line with instructions
     for (; i < 8; i++)
       printf("%c%c%c", 17, 17, 17);
-    printf("%c0-%u = Launch Core.  CTRL 1-%u = Edit Slo%c", 0x12, slot_count - 1, slot_count - 1, 0x92);
+    printf("%c0-%u = Launch Core.  CTRL 1-%u = Edit Slo%c", 0x12,
+           slot_count - 1, slot_count - 1, 0x92);
     POKE(1024 + 999, 0x14 + 0x80); // the 't'
 
-    x = 0;
+    short x = 0;
+    short y = 0;
     while (!x) {
       x = PEEK(0xd610);
       y = PEEK(0xd611);
@@ -615,8 +618,7 @@ void main(void)
     if (x >= '0' && x < slot_count + '0') {
       if (x == '0') {
         reconfig_fpga(0);
-      }
-      else if (slot_core[x - '0'].valid != 0) // only boot slot if not empty
+      } else if (slot_core[x - '0'].valid != 0) // only boot slot if not empty
         reconfig_fpga((x - '0') * SLOT_SIZE + 4096);
       else
         error_flash();
@@ -650,8 +652,7 @@ void main(void)
       if (!selected) {
         reconfig_fpga(0);
         printf("%c", 0x93);
-      }
-      else if (slot_core[selected].valid != SLOT_EMPTY)
+      } else if (slot_core[selected].valid != SLOT_EMPTY)
         reconfig_fpga(selected * SLOT_SIZE + 4096);
       else
         error_flash();
@@ -725,11 +726,11 @@ void main(void)
         memset(disk_display_return + 12, 0x20, 28);
 #include <cbm_petscii_charmap.h>
         selected_file = SELECTED_FILE_VALID;
-      }
-      else
+      } else
         selected_file = select_bitstream_file(selected_reflash_slot);
       if (selected_file != SELECTED_FILE_INVALID) {
-        reflash_slot(selected_reflash_slot, selected_file, slot_core[0].version);
+        reflash_slot(selected_reflash_slot, selected_file,
+                     slot_core[0].version);
         scan_bitstream_information(0, selected_reflash_slot | 0x80);
       }
       printf("%c", 0x93);

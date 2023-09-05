@@ -9,18 +9,16 @@
  * Compile time options:
  *
  * Hardware releated:
- *   STANDALONE         - build standalone version instead of CORE-integrated version
- *                        sets slot size based on detected hardware
- *   A100T              - FPGA model A100T with 4MB slot size
- *                        sets slot size to 4MB
- *                        sets TAB_FOR_MENU
- *   A200T              - FPGA model A200T with 8MB slot size
- *                        sets slot size to 8MB
- *   TAB_FOR_MENU       - allow TAB key to enter MENU (default: NO SCROLL only)
+ *   STANDALONE         - build standalone version instead of CORE-integrated
+ * version sets slot size based on detected hardware A100T              - FPGA
+ * model A100T with 4MB slot size sets slot size to 4MB sets TAB_FOR_MENU A200T
+ * - FPGA model A200T with 8MB slot size sets slot size to 8MB TAB_FOR_MENU -
+ * allow TAB key to enter MENU (default: NO SCROLL only)
  *
  * QSPI Verbosity & Debugging:
- *   QSPI_VERBOSE       - more verbose QSPI probing output (not inteded for CORE inclusion)
- *   QSPI_DEBUG         - even more output and debug testing (implies QSPI_VERBOSE)
+ *   QSPI_VERBOSE       - more verbose QSPI probing output (not inteded for CORE
+ * inclusion) QSPI_DEBUG         - even more output and debug testing (implies
+ * QSPI_VERBOSE)
  *
  * QSPI Options:
  *   QSPI_FLASH_SLOT0   - allow flashing of slot 0
@@ -40,7 +38,9 @@
 #endif
 #endif
 
-#if (defined(A100T) && defined(A200T)) || (defined(A100T) && defined(STANDALONE)) || (defined(STANDALONE) && defined(A200T))
+#if (defined(A100T) && defined(A200T)) ||                                      \
+    (defined(A100T) && defined(STANDALONE)) ||                                 \
+    (defined(STANDALONE) && defined(A200T))
 #error A100T, A200T, and STANDALONE defines are exclusive!
 #endif
 
@@ -88,8 +88,7 @@ extern unsigned char verboseProgram;
 
 extern unsigned char manufacturer;
 extern unsigned short device_id;
-extern unsigned char cfi_data[512];
-extern unsigned char cfi_data[512];
+// extern unsigned char cfi_data[512];
 extern unsigned short cfi_length;
 extern unsigned char flash_sector_bits;
 extern unsigned char last_sector_num;
@@ -101,16 +100,17 @@ extern unsigned char mega65core_magic[];
 extern char disk_name_return[65];
 extern char disk_display_return[40];
 
-extern unsigned short mb;
+// extern unsigned short mb;
 
 extern unsigned char buffer[512];
 
-extern short i, x, y, z;
+// extern short i, x, y, z;
 
 int8_t probe_hardware_version(void);
 unsigned char probe_qspi_flash(void);
 unsigned char select_bitstream_file(unsigned char slot);
-void reflash_slot(unsigned char slot, unsigned char selected_file, char *slot0version);
+void reflash_slot(unsigned char slot, unsigned char selected_file,
+                  char *slot0version);
 void flash_inspector(void);
 
 void read_registers(void);
