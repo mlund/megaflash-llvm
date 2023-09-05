@@ -75,7 +75,7 @@ unsigned char debcd(unsigned char c)
   return (c & 0xf) + (c >> 4) * 10;
 }
 
-void getrtc(struct m65_tm *a)
+void _getrtc(struct m65_tm *a)
 {
 #ifdef MODE_INTEGRATED
   // use real RTC, as this will also work in HYPPO mode
