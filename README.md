@@ -11,7 +11,7 @@ wget https://github.com/llvm-mos/llvm-mos-sdk/releases/latest/download/llvm-mos-
 tar xf llvm-mos-linux.tar.xz -C $HOME
 ~~~
 
-While this could be setup using a simple Makefile, we here use CMake which has
+While this can be setup using a simple i`Makefile`, we here use CMake which has
 the advantage that it will automatically download mega65-libc:
 
 ~~~sh
